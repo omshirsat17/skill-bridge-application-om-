@@ -4,22 +4,66 @@ const router = express.Router();
 const Student = require("../models/Student");
 const protect = require("../middleware/authMiddleware");
 
+const toStringArray = (value) => {
+  if (!value) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
+  }
+
+  return String(value)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+const getProfilePayload = (body) => {
+  const college = body.college && String(body.college).trim();
+  const branch = body.branch && String(body.branch).trim();
+  const year = body.year && String(body.year).trim();
+
+  if (!college || !branch || !year) {
+    return {
+      error: "College, branch, and year are required",
+    };
+  }
+
+  return {
+    data: {
+      college,
+      branch,
+      year,
+      skills: toStringArray(body.skills),
+      projects: toStringArray(body.projects),
+      resumeLink: body.resumeLink ? String(body.resumeLink).trim() : "",
+    },
+  };
+};
 
 // ==============================
 // CREATE STUDENT PROFILE
 // ==============================
 router.post("/create", protect, async (req, res) => {
   try {
-    const { college, branch, year, skills, projects, resumeLink } = req.body;
+    const { data, error } = getProfilePayload(req.body);
+
+    if (error) {
+      return res.status(400).json({ message: error });
+    }
+
+    const existingStudent = await Student.findOne({ userId: req.user.id });
+
+    if (existingStudent) {
+      return res.status(400).json({
+        message: "Student profile already exists. Please update it instead.",
+      });
+    }
 
     const student = await Student.create({
       userId: req.user.id,
-      college,
-      branch,
-      year,
-      skills,
-      projects,
-      resumeLink,
+      ...data,
     });
 
     res.status(201).json({
@@ -65,19 +109,16 @@ router.get("/profile", protect, async (req, res) => {
 // ==============================
 router.put("/update", protect, async (req, res) => {
   try {
-    const { college, branch, year, skills, projects, resumeLink } = req.body;
+    const { data, error } = getProfilePayload(req.body);
+
+    if (error) {
+      return res.status(400).json({ message: error });
+    }
 
     const student = await Student.findOneAndUpdate(
       { userId: req.user.id },
-      {
-        college,
-        branch,
-        year,
-        skills,
-        projects,
-        resumeLink,
-      },
-      { new: true }
+      data,
+      { new: true, runValidators: true }
     );
 
     if (!student) {
