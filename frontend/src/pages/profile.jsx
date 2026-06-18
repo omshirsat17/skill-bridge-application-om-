@@ -17,35 +17,33 @@ function Profile() {
   }, []);
 
   const fetchProfile = async () => {
-  try {
-    const response = await fetch("/api/profile");
+    try {
+      const response = await fetch("/api/profile");
 
-    if (!response.ok) return;
+      if (!response.ok) return;
 
-    const result = await response.json();
+      const data = await response.json();
 
-    if (
-      result.success &&
-      result.profiles &&
-      result.profiles.length > 0
-    ) {
-      const data = result.profiles[result.profiles.length - 1];
+      if (data.profiles && data.profiles.length > 0) {
+        const profile = data.profiles[data.profiles.length - 1];
 
-      setFormData({
-        fullName: data.fullName || "",
-        collegeName: data.collegeName || "",
-        branch: data.branch || "",
-        year: data.year || "",
-        skills: data.skills ? data.skills.join(", ") : "",
-        bio: data.bio || "",
-        linkedin: data.linkedin || "",
-        github: data.github || "",
-      });
+        setFormData({
+          fullName: profile.fullName || "",
+          collegeName: profile.collegeName || "",
+          branch: profile.branch || "",
+          year: profile.year || "",
+          skills: profile.skills
+            ? profile.skills.join(", ")
+            : "",
+          bio: profile.bio || "",
+          linkedin: profile.linkedin || "",
+          github: profile.github || "",
+        });
+      }
+    } catch (error) {
+      console.error(error);
     }
-  } catch (error) {
-    console.error("Profile Load Error:", error);
-  }
-};
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -72,105 +70,157 @@ function Profile() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to save profile");
+        throw new Error(data.message);
       }
 
       alert("Profile Saved Successfully!");
-      console.log(data);
-
       fetchProfile();
     } catch (error) {
-      console.error("SAVE ERROR:", error);
-
-      alert(
-        "Error saving profile: " +
-          (error.message === "Failed to fetch"
-            ? "Backend server is not reachable."
-            : error.message)
-      );
+      alert(error.message);
     }
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>SkillBridge Profile</h1>
+    <div className="max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl p-8 shadow-lg mb-8">
+        <h1 className="text-4xl font-bold">
+          👤 Profile Management
+        </h1>
+        <p className="mt-2 text-lg">
+          Update and manage your SkillBridge profile.
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="fullName"
-          placeholder="Full Name"
-          value={formData.fullName}
-          onChange={handleChange}
-        />
-        <br /><br />
+      {/* Form Card */}
+      <div className="bg-white rounded-2xl shadow-lg p-8 transition dark:bg-slate-900">
+        <form
+          onSubmit={handleSubmit}
+          className="grid md:grid-cols-2 gap-6"
+        >
+          <div>
+            <label className="block font-semibold mb-2 text-slate-800 dark:text-slate-200">
+              Full Name
+            </label>
 
-        <input
-          type="text"
-          name="collegeName"
-          placeholder="College Name"
-          value={formData.collegeName}
-          onChange={handleChange}
-        />
-        <br /><br />
+            <input
+              type="text"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleChange}
+              className="w-full border rounded-lg p-3 text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+            />
+          </div>
 
-        <input
-          type="text"
-          name="branch"
-          placeholder="Branch"
-          value={formData.branch}
-          onChange={handleChange}
-        />
-        <br /><br />
+          <div>
+            <label className="block font-semibold mb-2 text-slate-800 dark:text-slate-200">
+              College Name
+            </label>
 
-        <input
-          type="text"
-          name="year"
-          placeholder="Year"
-          value={formData.year}
-          onChange={handleChange}
-        />
-        <br /><br />
+            <input
+              type="text"
+              name="collegeName"
+              value={formData.collegeName}
+              onChange={handleChange}
+              className="w-full border rounded-lg p-3 text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+            />
+          </div>
 
-        <input
-          type="text"
-          name="skills"
-          placeholder="Skills (comma separated)"
-          value={formData.skills}
-          onChange={handleChange}
-        />
-        <br /><br />
+          <div>
+            <label className="block font-semibold mb-2 text-slate-800 dark:text-slate-200">
+              Branch
+            </label>
 
-        <textarea
-          name="bio"
-          placeholder="Bio"
-          value={formData.bio}
-          onChange={handleChange}
-        />
-        <br /><br />
+            <input
+              type="text"
+              name="branch"
+              value={formData.branch}
+              onChange={handleChange}
+              className="w-full border rounded-lg p-3 text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+            />
+          </div>
 
-        <input
-          type="text"
-          name="linkedin"
-          placeholder="LinkedIn URL"
-          value={formData.linkedin}
-          onChange={handleChange}
-        />
-        <br /><br />
+          <div>
+            <label className="block font-semibold mb-2 text-slate-800 dark:text-slate-200">
+              Year
+            </label>
 
-        <input
-          type="text"
-          name="github"
-          placeholder="GitHub URL"
-          value={formData.github}
-          onChange={handleChange}
-        />
-        <br /><br />
+            <input
+              type="text"
+              name="year"
+              value={formData.year}
+              onChange={handleChange}
+              className="w-full border rounded-lg p-3 text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+            />
+          </div>
 
-        <button type="submit">
-          Save Profile
-        </button>
-      </form>
+          <div className="md:col-span-2">
+            <label className="block font-semibold mb-2 text-slate-800 dark:text-slate-200">
+              Skills
+            </label>
+
+            <input
+              type="text"
+              name="skills"
+              value={formData.skills}
+              onChange={handleChange}
+              placeholder="HTML, CSS, JavaScript, React"
+              className="w-full border rounded-lg p-3 text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block font-semibold mb-2 text-slate-800 dark:text-slate-200">
+              Bio
+            </label>
+
+            <textarea
+              name="bio"
+              rows="4"
+              value={formData.bio}
+              onChange={handleChange}
+              className="w-full border rounded-lg p-3 text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold mb-2 text-slate-800 dark:text-slate-200">
+              LinkedIn URL
+            </label>
+
+            <input
+              type="text"
+              name="linkedin"
+              value={formData.linkedin}
+              onChange={handleChange}
+              className="w-full border rounded-lg p-3 text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold mb-2 text-slate-800 dark:text-slate-200">
+              GitHub URL
+            </label>
+
+            <input
+              type="text"
+              name="github"
+              value={formData.github}
+              onChange={handleChange}
+              className="w-full border rounded-lg p-3 text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <button
+              type="submit"
+              className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition"
+            >
+              Save Profile
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

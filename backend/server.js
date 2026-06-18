@@ -1,8 +1,8 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const path = require("path");
 const cors = require("cors");
+const connectDB = require("./config/db");
 
 dotenv.config({ path: path.join(__dirname, ".env"), quiet: true });
 
@@ -16,16 +16,10 @@ app.use(cors());
 const authRoutes = require("./routes/authRoutes");
 const studentRoutes = require("./routes/studentRoutes");
 const profileRoutes = require("./routes/profileRoutes");
+const jobRoutes = require("./routes/jobRoutes");
 
 // MongoDB Connection
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("MongoDB Connected");
-  })
-  .catch((err) => {
-    console.log("MongoDB Connection Error:", err.message);
-  });
+connectDB();
 
 // Test Route
 app.get("/", (req, res) => {
@@ -36,7 +30,9 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/jobs", jobRoutes);
 
+// 404 Handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -44,6 +40,7 @@ app.use((req, res) => {
   });
 });
 
+// Global Error Handler
 app.use((err, req, res, next) => {
   console.error("Unhandled Server Error:", err.message);
 
@@ -63,7 +60,9 @@ const server = app.listen(PORT, () => {
 
 server.on("error", (error) => {
   if (error.code === "EADDRINUSE") {
-    console.error(`Port ${PORT} is already in use. Stop the old server or use another PORT.`);
+    console.error(
+      `Port ${PORT} is already in use. Stop the old server or use another PORT.`
+    );
     return;
   }
 
